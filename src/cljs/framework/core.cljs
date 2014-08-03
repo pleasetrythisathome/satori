@@ -8,6 +8,7 @@
             [om.dom :as dom :include-macros true]
             [sablono.core :as html :refer-macros [html]]
 
+            [weasel.repl :as repl]
             [shodan.console :as console :include-macros true]
             [ankha.core :as ankha]))
 
@@ -15,6 +16,11 @@
 (if (exists? js/console)
   (enable-console-print!)
   (set-print-fn! js/print))
+
+(when (exists? js/window)
+  ;; connect to weasel repl
+  (when-not (repl/alive?)
+    (repl/connect "ws://localhost:9001" :verbose true)))
 
 (defn app-view
   "Root application component."

@@ -9,7 +9,7 @@
 
   :dependencies [;; clojure
                  [org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2227"]
+                 [org.clojure/clojurescript "0.0-2288"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
 
                  ;; server
@@ -28,13 +28,6 @@
 
   :plugins [[lein-cljsbuild "1.0.3"]]
   :hooks [leiningen.cljsbuild]
-
-  :cljsbuild {:builds [{:source-paths ["src/cljs"]
-                  :compiler {:preamble ["react/react.min.js"]
-                             :output-to "resources/public/framework.js"
-                             :output-dir "resources/public/out"
-                             :source-map "resources/public/framework.js.map"
-                             :optimizations :whitespace}}]}
 
   :source-paths ["src/clj"]
   :resource-paths ["resources"]
