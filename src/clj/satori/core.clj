@@ -1,5 +1,5 @@
-(ns framework.core
-  (:require [framework.server :refer [start-server]]
+(ns satori.core
+  (:require [satori.server :refer [start-server]]
             [clojure.tools.nrepl.server :as nrepl]
             [cider.nrepl :refer [cider-nrepl-handler]]
             [cider.nrepl.middleware classpath complete info inspect stacktrace trace]

@@ -1,4 +1,4 @@
-(ns framework.core
+(ns satori.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [cljs.core.async :as async]
             [cljs.reader :as edn]

@@ -1,5 +1,5 @@
-(defproject framework "0.1.0-SNAPSHOT"
-  :description "A clojure(script) framework"
+(defproject satori "0.1.0-SNAPSHOT"
+  :description "A clojure(script) satori"
   :url "http://example.com/FIXME"
 
   :license {:name "Eclipse Public License"
@@ -31,4 +31,4 @@
 
   :source-paths ["src/clj"]
   :resource-paths ["resources"]
-  :main framework.core)
+  :main satori.core)

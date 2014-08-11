@@ -1,4 +1,4 @@
-(ns framework.render
+(ns satori.render
   (:require [clojure.java.io :as io]
             [hiccup.page :refer [html5 include-css include-js]]
             [clojure.pprint :refer [pprint]])
@@ -11,11 +11,11 @@
              ;; React requires either "window" or "global" to be defined.
              (.eval "var global = this;")
              ;; parse the compiled js file
-             (.eval (-> "public/framework.js"
+             (.eval (-> "public/main.js"
                         io/resource
                         io/reader)))
         ;; eval the core namespace
-        core (.eval js "framework.core")
+        core (.eval js "satori.core")
         ;; pull the invocable render-to-string method out of core
         render-to-string (fn [edn]
                            (.invokeMethod
@@ -32,16 +32,16 @@
         [:meta {:charset "utf-8"}]
         [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge,chrome=1"}]
         [:meta {:name "viewport" :content "width=device-width"}]
-        [:title "Framework"]]
+        [:title "Satori"]]
        [:body
         [:noscript "If you're seeing this then you're probably a search engine."]
-        (include-js "/framework.js")
+        (include-js "/main.js")
         ; Render view to HTML string and insert it where React will mount.
-        [:div#framework-app (render-to-string state-edn)]
+        [:div#satori-app (render-to-string state-edn)]
         ; Serialize app state so client can initialize without making an additional request.
-        [:script#framework-state {:type "application/edn"} state-edn]
+        [:script#satori-state {:type "application/edn"} state-edn]
         ; Initialize client and pass in IDs of the app HTML and app EDN elements.
-        [:script {:type "text/javascript"} "framework.core.init('framework-app', 'framework-state')"]]))))
+        [:script {:type "text/javascript"} "satori.core.init('satori-app', 'satori-state')"]]))))
 
 (defn render-fn
   "Returns a function to render fully-formed HTML.

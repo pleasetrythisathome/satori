@@ -1,4 +1,4 @@
-(ns framework.server
+(ns satori.server
   (:require [clojure.string     :as str]
             [clojure.java.io    :as io]
             [clojure.pprint     :refer [pprint]]
@@ -6,7 +6,7 @@
             [compojure.route    :as route]
             [compojure.handler  :as handler]
             [ring.middleware.reload :as reload]
-            [framework.render :as render])
+            [satori.render :as render])
   (:use org.httpkit.server
         ring.util.response))
 
