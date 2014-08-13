@@ -5,6 +5,7 @@
 /docs/
 /checkouts/
 /out/
+/src/clj/cfg/
 
 /resources/public/out/
 /resources/public/*.js*

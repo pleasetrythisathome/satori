@@ -26,9 +26,14 @@
                  [ankha "0.1.3"]
                  [shodan "0.3.0"]]
 
-  :plugins [[lein-cljsbuild "1.0.3"]]
+  :plugins [[lein-cljsbuild "1.0.3"]
+            [slothcfg "1.0.1"]]
+
   :hooks [leiningen.cljsbuild]
 
   :source-paths ["src/clj"]
   :resource-paths ["resources"]
-  :main satori.core)
+  :main satori.core
+
+  :templater {:include-paths ["src"
+                              "resources"]})

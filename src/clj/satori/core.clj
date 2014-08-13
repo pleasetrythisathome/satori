@@ -3,7 +3,10 @@
             [clojure.tools.nrepl.server :as nrepl]
             [cider.nrepl :refer [cider-nrepl-handler]]
             [cider.nrepl.middleware classpath complete info inspect stacktrace trace]
-            [cemerick.piggieback]))
+            [cemerick.piggieback]
+            [clojure.pprint :refer [pprint]]
+            [clojure.java.io :as io])
+  (:use [cfg.current]))
 
 (def nrepl-server (atom nil))
 
