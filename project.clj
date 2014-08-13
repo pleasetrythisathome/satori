@@ -16,13 +16,13 @@
                  [http-kit "2.1.18"]
                  [compojure "1.1.8"]
                  [ring "1.3.0"]
-                 [ring/ring-devel "1.1.8"]
+                 [ring/ring-devel "1.3.0"]
                  [hiccup "1.0.5"]
-                 [cider/cider-nrepl "0.7.0-SNAPSHOT"]
+                 [cider/cider-nrepl "0.7.0"]
 
                  ;; om
-                 [om "0.6.4"]
-                 [sablono "0.2.17"]
+                 [om "0.7.1"]
+                 [sablono "0.2.21"]
                  [ankha "0.1.3"]
                  [shodan "0.3.0"]]
 
