@@ -84,32 +84,39 @@
                (seq ['render (unhide (.getName file)) 'data])))
        files))
 
+(defmulti process-file
+  (fn [file]
+    (.getName file)))
+(defmethod process-file :default [file project])
+
+(defn create-renderer-visitor [{:keys [name root] :as project}]
+  (fn [form]
+    (cond
+     (symbol-first? '->files form) (concat (butlast form) (build-renderers (get-project-files) root name))
+     (symbol-first? 'main/info form) (concat (butlast form) [(get-in project [:template :msg])])
+     :else (identity form))))
+
+;; ===== let's make templates! =====
 
 (defn create-template []
-  (let [{:keys [name root template]} @project
+  (let [{:keys [name root template] :as proj} @project
         {:keys [output-dir title project msg]} template
 
         target-dir (str root "/" output-dir)
-        template-dir (str target-dir "/src/leiningen/new/")
-        src-dir (str template-dir title "/")
-        renderer-path (str template-dir title ".clj")
+        lein-dir (str target-dir "/src/leiningen/new/")
+        src-dir (str lein-dir title "/")
+        renderer-path (str lein-dir title ".clj")]
 
-        files (get-project-files)
-        renderer (w/postwalk (fn [form]
-                               (cond
-                                (symbol-first? '->files form) (concat (butlast form) (build-renderers files root name))
-                                (symbol-first? 'main/info) (let []
-                                                             (concat (butlast form) [msg]))
-                                :else form))
-                             (-> renderer-path
-                                 slurp
-                                 read-all))]
+    (fresh-template title target-dir)
 
-    (sh "lein" "new" "template" title "--to-dir" target-dir)
-    (sh "rm" (str src-dir "foo.clj"))
-    (spit-forms renderer-path renderer)
+    (spit-seq renderer-path (w/postwalk (create-renderer-visitor proj) (read-all renderer-path)))
 
-    (doseq [file files]
-      (spit (str src-dir (get-file-name file)) (replace-project-name file name)))))
+    (doseq [file (get-project-files)]
+      (spit (str src-dir (unhide (.getName file))) (-> file
+                                                       .getAbsolutePath
+                                                       slurp
+                                                       (replace-template-var name "name"))))
+    )
+  )
 
 (create-template)
