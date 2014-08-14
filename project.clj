@@ -35,5 +35,8 @@
   :resource-paths ["resources"]
   :main satori.core
 
-  :templater {:include-paths ["src"
-                              "resources"]})
+  :template {:output-dir "lein-template"
+             :title "satori"
+             :project {:description "A leiningen template for Satori"
+                       :url "http://www.github.com/"}
+             :msg "There is no beginning or ending just change"})

@@ -7,6 +7,7 @@
 /out/
 /src/clj/cfg/
 
+/lein-template/
 /resources/public/out/
 /resources/public/*.js*
 
@@ -24,3 +25,5 @@ pom.xml*
 .nrepl-port
 
 .DS_Store
+.git/
+.#*
