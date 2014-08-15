@@ -99,12 +99,21 @@ returns true if the file has an override path defined in the template project se
                (seq ['render (unhide (.getName file)) 'data])))
        files))
 
+(defn ignore-keys [proj-file-string ignore-keys]
+  (let [proj (read-string proj-file-string)
+        hash (->> proj
+                  (drop 3)
+                  (apply hash-map))
+        removed (apply dissoc hash ignore-keys)]
+    (pr-str (concat (take 3 proj) (mapcat identity removed)))))
+
 (defmulti process-file (is-overridden? keys))
 
 (defmethod process-file false [file]
   (-> file
       .getAbsolutePath
       slurp
+      (cond-> (= "project.clj" (.getName file)) (ignore-keys [:template]))
       (replace-template-var (:name @project) "name")))
 
 (defmethod process-file true [file]
