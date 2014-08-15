@@ -1,5 +1,5 @@
 (defproject satori "0.1.0-SNAPSHOT"
-  :description "A clojure(script) satori"
+  :description "A clojure(script) framework"
   :url "http://example.com/FIXME"
 
   :license {:name "Eclipse Public License"
@@ -39,4 +39,5 @@
              :title "satori"
              :project {:description "A leiningen template for Satori"
                        :url "http://www.github.com/"}
-             :msg "There is no beginning or ending just change"})
+             :msg "There is no beginning or ending just change"
+             :file-overrides {"README.md" "resources/README.template.md"}})
