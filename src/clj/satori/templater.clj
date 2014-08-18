@@ -80,6 +80,22 @@ returns true if the file has an override path defined in the template project se
          (filter #(not (is-overridden? % :project)))
          (filter #(.isFile %)))))
 
+;; ===== zipper utils =====
+
+(defn read-zipper
+  "reads the file at path into a rewrite-clj zipper"
+  [path]
+  (-> path
+      slurp
+      (#(str "(" % "\n)"))
+      z/of-string))
+
+(defn print-zipper
+  "prints a rewrite-clj zipper as a string"
+  [zipper]
+  (let [s (with-out-str (z/print-root zipper))]
+    (subs s 1 (- (count s) 3))))
+
 ;; ===== lein utils =====
 
 (defn replace-template-var
