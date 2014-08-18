@@ -121,6 +121,20 @@ returns true if the file has an override path defined in the template project se
       print-zipper
       z/of-string))
 
+(defn zip-file-string
+  "creates a zipper from a slurped file string. (wraps in seq)
+  steps into zipper root
+  applys f
+  recreates zipper from root
+  prints back to string"
+  [file-string f]
+  (-> file-string
+      (#(str "(" % "\n)"))
+      z/of-string
+      f
+      print-zipper
+      (#(subs % 1 (- (count %) 3)))))
+
 ;; ===== file processors =====
 
 (defn modify-proj
@@ -183,16 +197,10 @@ returns true if the file has an override path defined in the template project se
                       slurp
                       (replace-template-var (:name @project) "name"))]
     (m/match [type]
-             [#"clj"] (-> templated
-                          (#(str "(" % "\n)"))
-                          read-zipper
-                          ((fn [root]
-                             (condp = name
-                               "project" root
-                               (get-in @project [:template :title]) (process-renderer root)
-                               root)))
-                          print-zipper
-                          (#(subs # 1 (- (count #) 3))))
+             [#"clj"] (zip-file-string templated (condp = name
+                                                   "project" identity
+                                                   (get-in @project [:template :title]) process-renderer
+                                                   identity))
              :else templated)))
 
 (->> "/lein-template/src/leiningen/new/satori.clj"
