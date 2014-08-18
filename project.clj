@@ -18,7 +18,7 @@
                  [ring "1.3.0"]
                  [ring/ring-devel "1.3.0"]
                  [hiccup "1.0.5"]
-                 [cider/cider-nrepl "0.7.0"]
+                 [cider/cider-nrepl "0.8.0-SNAPSHOT"]
 
                  ;; om
                  [om "0.7.1"]
