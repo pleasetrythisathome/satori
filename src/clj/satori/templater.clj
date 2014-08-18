@@ -1,5 +1,6 @@
 (ns satori.templater
   (:require [clojure.string :as str]
+            [clojure.core.match :as m]
             [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
             [clojure.pprint :refer [pprint]]
@@ -24,21 +25,6 @@
            (= sym))))
 
 ;; ===== file io =====
-
-(defn read-all
-  "reads all lines from a file and returns a sequence of forms"
-  [path]
-  (-> path
-      slurp
-      (#(str \( % "\n" \)))
-      z/of-string))
-
-(defn spit-seq
-  "spits all the items in a seq concatted into a file"
-  [path forms]
-  (doall (map-indexed (fn [idx form]
-                        (spit path (with-out-str (pprint form)) :append (not (zero? idx))))
-                      forms)))
 
 (defn gitignored?
   "returns true if the file would be ignored by git"
@@ -156,6 +142,36 @@ returns true if the file has an override path defined in the template project se
      (symbol-first? 'main/info form) (concat (butlast form) [(get-in project [:template :msg])])
      :else (identity form))))
 
+;; make core.match compatible with regex
+(defrecord RegexPattern [regex])
+
+(defmethod m/emit-pattern java.util.regex.Pattern
+  [pat]
+  (RegexPattern. pat))
+
+(defmethod m/to-source RegexPattern
+  [pat ocr]
+  `(re-find ~(:regex pat) ~ocr))
+
+(defn process-file [file]
+  (let [path (.getAbsolutePath file)
+        [type & name] (-> (.getName file)
+                          (str/split #"\.")
+                          reverse)
+        name (str/join "." (reverse name))]
+    (m/match [name type]
+             [name #"clj"] (-> path
+                               read-zipper
+                               ;; ((fn [root]
+                               ;;    (m/match [name]
+                               ;;             ["project"] (do
+                               ;;                           ))))
+                               ;;(replace-template-var (:name @project) "name")
+                               print-zipper)
+             :else (-> path
+                       slurp
+                       (replace-template-var (:name @project) "name")))))
+
 ;; ===== let's make templates! =====
 
 (defn templater []
@@ -169,15 +185,18 @@ returns true if the file has an override path defined in the template project se
 
     (fresh-template title target-dir)
 
-    (let [renderer (->> renderer-path
-                        read-all
-                        (w/postwalk process-renderer-step))]
-      (spit-seq renderer-path renderer))
+    (spit renderer-path (process-file (io/file renderer-path)))
 
     (doseq [file (get-project-files)]
-      (spit (str src-dir (unhide (.getName file))) (process-file file)))))
-
-
+      (let [path (str src-dir (unhide (.getName file)))
+            file-to-process (if (is-overridden? file :template)
+                              (->> file
+                                   get-rel-path
+                                   (conj [:template :file-overrides])
+                                   (get-in @project)
+                                   io/file)
+                              file)]
+        (spit path (process-file file-to-process))))))
 
 
 (comment (templater)
