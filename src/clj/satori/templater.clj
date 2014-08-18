@@ -141,7 +141,7 @@ returns true if the file has an override path defined in the template project se
 
 ;; ===== let's make templates! =====
 
-(defn create-template []
+(defn templater []
   (let [{:keys [name root template] :as proj} @project
         {:keys [output-dir title]} template
 
@@ -163,7 +163,7 @@ returns true if the file has an override path defined in the template project se
 
 
 
-(comment (create-template)
+(comment (templater)
 
          (def path (->> "/lein-template/src/leiningen/new/satori.clj"
                         (str (:root @project))))
