@@ -61,10 +61,12 @@
 (defn is-overridden?
   "takes either keys or vals from file-overrides and returns a function that
 returns true if the file has an override path defined in the template project settings"
-  [f]
-  (fn [file]
-    (let [{:keys [root template]} @project]
-      (contains? (set (f (:file-overrides template))) (get-rel-path file)))))
+  [file loc]
+  (let [{:keys [root template]} @project
+        f (condp = loc
+            :project vals
+            :template keys)]
+    (contains? (set (f (:file-overrides template))) (get-rel-path file))))
 
 (defn get-project-files
   "returns all files in the project that are not ignored by git"
@@ -74,7 +76,7 @@ returns true if the file has an override path defined in the template project se
          io/file
          file-seq
          (filter (complement gitignored?))
-         (filter (complement (is-overridden? vals)))
+         (filter #(not (is-overridden? % :project)))
          (filter #(.isFile %)))))
 
 ;; ===== lein utils =====
@@ -115,6 +117,7 @@ returns true if the file has an override path defined in the template project se
 
 (defn process-file [file]
   (if ((is-overridden? keys) file)
+  (if (is-overridden? file :template)
     (->> file
          get-rel-path
          (conj [:template :file-overrides])
