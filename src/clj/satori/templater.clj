@@ -3,7 +3,9 @@
             [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
             [clojure.pprint :refer [pprint]]
-            [clojure.walk :as w])
+            [clojure.walk :as w]
+            [rewrite-clj.zip :as z]
+            [rewrite-clj.printer :as prn])
   (:use [cfg.current]))
 
 ;; ===== general utils =====
@@ -34,7 +36,7 @@
   "spits all the items in a seq concatted into a file"
   [path forms]
   (doall (map-indexed (fn [idx form]
-                        (spit path (pr-str form) :append (not (zero? idx))))
+                        (spit path (with-out-str (pprint form)) :append (not (zero? idx))))
                       forms)))
 
 (defn gitignored?
@@ -139,9 +141,43 @@ returns true if the file has an override path defined in the template project se
 
     (fresh-template title target-dir)
 
-    (spit-seq renderer-path (w/postwalk create-renderer-visitor (read-all renderer-path)))
+    (let [renderer (->> renderer-path
+                        read-all
+                        (w/postwalk process-renderer-step))]
+      (spit-seq renderer-path renderer))
 
     (doseq [file (get-project-files)]
-      (spit (str src-dir (unhide (.getName file))) (process-file file)))))
+      (spit (str src-dir (unhide (.getName file))) (with-out-str (pprint (process-file file)))))))
 
-;; (create-template)
+
+
+
+(comment (create-template)
+
+         (def path (->> "/lein-template/src/leiningen/new/satori.clj"
+                        (str (:root @project))))
+
+         (with-out-str (->> path
+                            read-all
+                            (w/postwalk process-renderer-step)
+                            pprint))
+
+         (def data (z/of-string (->> path
+                                     read-all
+                                     pr-str)))
+
+         (z/sexpr data)
+
+         (pprint data)
+
+         (-> data
+             (z/find 'main/info)
+             z/sexpr)
+
+         (-> data
+             z/down
+             (z/find-value z/right 'defn)
+             z/sexpr)
+
+         (z/find-value data z/next '->files)
+         )

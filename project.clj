@@ -24,10 +24,13 @@
                  [om "0.7.1"]
                  [sablono "0.2.21"]
                  [ankha "0.1.3"]
-                 [shodan "0.3.0"]]
+                 [shodan "0.3.0"]
+
+                 [rewrite-clj "0.3.9"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]
-            [slothcfg "1.0.1"]]
+            [slothcfg "1.0.1"]
+            [lein-plz "0.1.1"]]
 
   :hooks [leiningen.cljsbuild]
 
