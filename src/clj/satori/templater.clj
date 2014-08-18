@@ -81,22 +81,6 @@ returns true if the file has an override path defined in the template project se
          (filter #(not (is-overridden? % :project)))
          (filter #(.isFile %)))))
 
-;; ===== zipper utils =====
-
-(defn read-zipper
-  "reads the file at path into a rewrite-clj zipper"
-  [path]
-  (-> path
-      slurp
-      (#(str "(" % "\n)"))
-      z/of-string))
-
-(defn print-zipper
-  "prints a rewrite-clj zipper as a string"
-  [zipper]
-  (let [s (with-out-str (z/print-root zipper))]
-    (subs s 1 (- (count s) 3))))
-
 ;; ===== lein utils =====
 
 (defn replace-template-var
@@ -109,55 +93,8 @@ returns true if the file has an override path defined in the template project se
   (sh "lein" "new" "template" title "--to-dir" dir)
   (sh "rm" (str dir "/src/leiningen/new/" title "/foo.clj")))
 
-;; ===== file processors =====
+;; ===== make core.match compatible with regex =====
 
-(defn build-renderers [files root name]
-  (map (juxt (fn [file]
-               (-> file
-                   .getAbsolutePath
-                   (str/replace (str root "/") "")
-                   (replace-template-var (sanitize name) "sanitized")))
-             (fn [file]
-               (seq ['render (unhide (.getName file)) 'data])))
-       files))
-
-(defn modify-proj-map
-  "converts a proj file into a map, applies f to it, and then prints it back to a string"
-  [f proj-string]
-  (let [proj (read-string proj-string)]
-    (->> proj
-         (drop 3)
-         (apply hash-map)
-         f
-         (mapcat identity)
-         (concat (take 3 proj))
-         pr-str)))
-
-(defn process-file [file]
-  (if ((is-overridden? keys) file)
-  (if (is-overridden? file :template)
-    (->> file
-         get-rel-path
-         (conj [:template :file-overrides])
-         (get-in @project)
-         io/file
-         process-file)
-    (-> file
-        .getAbsolutePath
-        slurp
-        (cond->>
-         (= "project.clj" (.getName file)) (modify-proj-map #(apply dissoc % [:template])))
-        (replace-template-var (:name @project) "name"))))
-
-(defn process-renderer-step
-  [form]
-  (let [{:keys [name root] :as project} @project]
-    (cond
-     (symbol-first? '->files form) (concat (butlast form) (build-renderers (get-project-files) root name))
-     (symbol-first? 'main/info form) (concat (butlast form) [(get-in project [:template :msg])])
-     :else (identity form))))
-
-;; make core.match compatible with regex
 (defrecord RegexPattern [regex])
 
 (defmethod m/emit-pattern java.util.regex.Pattern
@@ -168,24 +105,105 @@ returns true if the file has an override path defined in the template project se
   [pat ocr]
   `(re-find ~(:regex pat) ~ocr))
 
+;; ===== zipper utils =====
+
+(defn print-zipper
+  "prints a rewrite-clj zipper as a string"
+  [zipper]
+  (with-out-str (z/print-root zipper)))
+
+(defn zip-down-up
+  "steps into zipper, applys f, and then recreates zipper from root"
+  [f zipper]
+  (-> zipper
+      z/down
+      f
+      print-zipper
+      z/of-string))
+
+;; ===== file processors =====
+
+(defn modify-proj
+  "converts a proj file form sequence into a project map, applies f to it, and then prints it back to a string"
+  [f proj-seq]
+  (let [[info props] (split-at 3 (first proj-seq))]
+    (->> props
+         (apply hash-map)
+         f
+         (mapcat identity)
+         (concat info)
+         (conj '()))))
+
+(defmulti processer (fn [file] (.getName file)))
+
+(defmethod processer :default [file] identity)
+
+(defmethod processer "project.clj" [file]
+  (let [overrides (get-in @project [:template :project])]
+    (->> file
+         (modify-proj #(apply dissoc % [:template]))
+         (modify-proj #(merge % overrides)))))
+
+(defn build-renderer
+  "builds a vector of file renderers"
+  [files]
+  (let [{:keys [root name] :as project} @project]
+    (map (juxt (fn [file]
+                 (-> file
+                     .getAbsolutePath
+                     (str/replace (str root "/") "")
+                     (replace-template-var (sanitize name) "sanitized")))
+               (fn [file]
+                 (seq ['render (unhide (.getName file)) 'data])))
+         files)))
+
+(defn process-renderer
+  "process the template renderer"
+  [root]
+  (-> root
+      (zip-down-up #(-> %
+                        (z/find-value z/next 'main/info)
+                        z/right
+                        (z/replace (get-in @project [:template :msg]))))
+      (zip-down-up #(-> %
+                        z/right
+                        (z/find-value z/next '->files)
+                        z/up
+                        (z/edit (fn [form]
+                                  (concat (butlast form)
+                                          (build-renderers (get-project-files)))))))))
+
 (defn process-file [file]
   (let [path (.getAbsolutePath file)
         [type & name] (-> (.getName file)
                           (str/split #"\.")
                           reverse)
-        name (str/join "." (reverse name))]
-    (m/match [name type]
-             [name #"clj"] (-> path
-                               read-zipper
-                               ;; ((fn [root]
-                               ;;    (m/match [name]
-                               ;;             ["project"] (do
-                               ;;                           ))))
-                               ;;(replace-template-var (:name @project) "name")
-                               print-zipper)
-             :else (-> path
-                       slurp
-                       (replace-template-var (:name @project) "name")))))
+        name (str/join "." (reverse name))
+        templated (-> path
+                      slurp
+                      (replace-template-var (:name @project) "name"))]
+    (m/match [type]
+             [#"clj"] (-> templated
+                          (#(str "(" % "\n)"))
+                          read-zipper
+                          ((fn [root]
+                             (condp = name
+                               "project" root
+                               (get-in @project [:template :title]) (process-renderer root)
+                               root)))
+                          print-zipper
+                          (#(subs # 1 (- (count #) 3))))
+             :else templated)))
+
+(->> "/lein-template/src/leiningen/new/satori.clj"
+     (str (:root @project))
+     slurp
+     read-zipper
+
+     z/sexpr
+     )
+
+;;(pprint (process-file (nth (get-project-files) 2)))
 
 ;; ===== let's make templates! =====
 
