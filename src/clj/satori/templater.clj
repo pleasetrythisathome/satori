@@ -55,6 +55,21 @@ returns true if the file has an override path defined in the template project se
             :template keys)]
     (contains? (set (f (:file-overrides template))) (get-rel-path file))))
 
+(defn get-override
+  "returns the overwritten file defined in :template in project"
+  [file]
+  (->> file
+       get-rel-path
+       (conj [:template :file-overrides])
+       (get-in @project)
+       io/file))
+
+(defn file-or-override
+  "returns either the file or its defined override"
+  [file]
+  (cond-> file
+          (is-overridden? file :template) get-override))
+
 (defn get-project-files
   "returns all files in the project that are not ignored by git"
   []
@@ -185,19 +200,15 @@ returns true if the file has an override path defined in the template project se
 
     (fresh-template title target-dir)
 
-    (spit renderer-path (process-file (io/file renderer-path)))
-
-    (doseq [file (get-project-files)]
-      (let [path (str src-dir (unhide (.getName file)))
-            file-to-process (if (is-overridden? file :template)
-                              (->> file
-                                   get-rel-path
-                                   (conj [:template :file-overrides])
-                                   (get-in @project)
-                                   io/file)
-                              file)]
-        (spit path (process-file file-to-process))))))
-
+    (doseq [[path file] (cons [renderer-path (io/file renderer-path)]
+                              (map (juxt (fn [file]
+                                           (->> file
+                                                .getName
+                                                unhide
+                                                (str src-dir)))
+                                         file-or-override)
+                                   (get-project-files)))]
+      (spit path (process-file file)))))
 
 (comment (templater)
 
