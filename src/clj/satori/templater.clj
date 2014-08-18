@@ -101,27 +101,35 @@ returns true if the file has an override path defined in the template project se
                (seq ['render (unhide (.getName file)) 'data])))
        files))
 
-(defn ignore-keys [proj-file-string ignore-keys]
-  (let [proj (read-string proj-file-string)
-        hash (->> proj
-                  (drop 3)
-                  (apply hash-map))
-        removed (apply dissoc hash ignore-keys)]
-    (pr-str (concat (take 3 proj) (mapcat identity removed)))))
+(defn modify-proj-map
+  "converts a proj file into a map, applies f to it, and then prints it back to a string"
+  [f proj-string]
+  (let [proj (read-string proj-string)]
+    (->> proj
+         (drop 3)
+         (apply hash-map)
+         f
+         (mapcat identity)
+         (concat (take 3 proj))
+         pr-str)))
 
-(defmulti process-file (is-overridden? keys))
+(defn process-file [file]
+  (if ((is-overridden? keys) file)
+    (->> file
+         get-rel-path
+         (conj [:template :file-overrides])
+         (get-in @project)
+         io/file
+         process-file)
+    (-> file
+        .getAbsolutePath
+        slurp
+        (cond->>
+         (= "project.clj" (.getName file)) (modify-proj-map #(apply dissoc % [:template])))
+        (replace-template-var (:name @project) "name"))))
 
-(defmethod process-file false [file]
-  (-> file
-      .getAbsolutePath
-      slurp
-      (cond-> (= "project.clj" (.getName file)) (ignore-keys [:template]))
-      (replace-template-var (:name @project) "name")))
-
-(defmethod process-file true [file]
-  (process-file (io/file (get-in @project [:template :file-overrides (get-rel-path file)]))))
-
-(defn create-renderer-visitor [form]
+(defn process-renderer-step
+  [form]
   (let [{:keys [name root] :as project} @project]
     (cond
      (symbol-first? '->files form) (concat (butlast form) (build-renderers (get-project-files) root name))
@@ -147,7 +155,7 @@ returns true if the file has an override path defined in the template project se
       (spit-seq renderer-path renderer))
 
     (doseq [file (get-project-files)]
-      (spit (str src-dir (unhide (.getName file))) (with-out-str (pprint (process-file file)))))))
+      (spit (str src-dir (unhide (.getName file))) (process-file file)))))
 
 
 
