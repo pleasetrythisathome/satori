@@ -5,6 +5,7 @@
             [clojure.pprint :refer [pprint]]
             [clojure.walk :as w]
             [rewrite-clj.zip :as z]
+            [rewrite-clj.parser :as p]
             [rewrite-clj.printer :as prn])
   (:use [cfg.current]))
 
@@ -27,10 +28,10 @@
 (defn read-all
   "reads all lines from a file and returns a sequence of forms"
   [path]
-  (let [r (java.io.PushbackReader.
-           (clojure.java.io/reader path))]
-    (let [eof (Object.)]
-      (take-while #(not= % eof) (repeatedly #(read r false eof))))))
+  (-> path
+      slurp
+      (#(str \( % "\n" \)))
+      z/of-string))
 
 (defn spit-seq
   "spits all the items in a seq concatted into a file"
