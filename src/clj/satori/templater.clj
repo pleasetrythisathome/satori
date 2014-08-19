@@ -40,10 +40,18 @@
   (cond-> filename
           (= \. (first filename)) (subs 1)))
 
-(defn get-rel-path [file]
+(defn get-rel-path
+  "returns the path of the file relative to the project root"
+  [file]
   (-> file
       .getAbsolutePath
       (str/replace (str (:root @project) "/") "")))
+
+(defn is-template-project?
+  "returns true if the file is the project file for the new template"
+  [file]
+  (let [out (get-in @project [:template :output-dir])]
+    (= (get-rel-path file) (str out "/project.clj"))))
 
 (defn is-overridden?
   "takes either keys or vals from file-overrides and returns a function that
@@ -189,45 +197,74 @@ returns true if the file has an override path defined in the template project se
       z/up
       (append-children (build-renderers (get-project-files)))))
 
-(defn process-file [file]
+(defn zip-template-proj
+  "replaces template project values with those defined in :template in project.clj"
+  [root]
+  (let [{:keys [title version project]} (:template @project)]
+    (-> root
+       z/down
+       (z/find-value z/next "0.1.0-SNAPSHOT")
+       (z/replace version)
+       z/up
+       (#(apply assoc-proj % (flatten (seq project)))))))
+
+#_(-> (str (:root @project) "/lein-template/project.clj")
+    slurp
+    (zip-file-string zip-template-proj)
+    print)
+
+(defn process-file
+  "processes the file based on file type, name, and context"
+  [file]
   (let [title (get-in @project [:template :title])
-        path (.getAbsolutePath file)
         [type & filename] (-> (.getName file)
                               (str/split #"\.")
                               reverse)
         filename (str/join "." (reverse filename))
-        file (slurp path)
+
+        file-str (-> file
+                     .getAbsolutePath
+                     slurp)
         template #(replace-template-var % (:name @project) "name")]
     (m/match [filename type]
-             ["project" "clj"] (-> file
-                                   (zip-file-string #(dissoc-proj % :template)))
-             [filename #"clj"] (cond-> (template file)
-                                       (= title filename) (zip-file-string zip-renderer))
-             :else (template file))))
-
-;; (pprint (process-file (nth (get-project-files) 2)))
+             ["project" "clj"] (if (is-template-project? file)
+                                 (-> file-str
+                                     (zip-file-string zip-template-proj))
+                                 (-> file-str
+                                     template
+                                     (zip-file-string #(dissoc-proj % :template))))
+             [filename #"clj"] (if (= title filename)
+                                 (zip-file-string file-str zip-renderer)
+                                 (template file-str))
+             :else file-str)))
 
 ;; ===== let's make templates! =====
 
-(defn templater []
+(defn templater
+  "creates a new line template from the current project and the :template map in project.clj
+  "
+  []
   (let [{:keys [name root template] :as proj} @project
         {:keys [output-dir title]} template
 
         target-dir (str root "/" output-dir)
         lein-dir (str target-dir "/src/leiningen/new/")
         src-dir (str lein-dir title "/")
-        renderer-path (str lein-dir title ".clj")]
+
+        path-file (juxt identity
+                        io/file)]
 
     (fresh-template title target-dir)
 
-    (doseq [[path file] (cons [renderer-path (io/file renderer-path)]
-                              (map (juxt (fn [file]
-                                           (->> file
-                                                .getName
-                                                unhide
-                                                (str src-dir)))
-                                         file-or-override)
-                                   (get-project-files)))]
+    (doseq [[path file] (concat [(path-file (str lein-dir title ".clj"))
+                                 (path-file (str target-dir "/project.clj"))]
+                                (mapv (juxt (fn [file]
+                                              (->> file
+                                                   .getName
+                                                   unhide
+                                                   (str src-dir)))
+                                            file-or-override)
+                                      (get-project-files)))]
       (spit path (process-file file)))))
 
 (comment (templater)
