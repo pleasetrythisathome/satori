@@ -107,19 +107,13 @@ returns true if the file has an override path defined in the template project se
 
 ;; ===== zipper utils =====
 
-(defn print-zipper
-  "prints a rewrite-clj zipper as a string"
-  [zipper]
-  (with-out-str (z/print-root zipper)))
-
-(defn zip-down-up
-  "steps into zipper, applys f, and then recreates zipper from root"
-  [f zipper]
-  (-> zipper
-      z/down
-      f
-      print-zipper
-      z/of-string))
+(defn append-children
+  "appends a sequence of children to a zipper location"
+  [zloc children]
+  (reduce (fn [out item]
+            (z/append-child out item))
+          zloc
+          children))
 
 (defn zip-file-string
   "creates a zipper from a slurped file string. (wraps in seq)
@@ -132,33 +126,42 @@ returns true if the file has an override path defined in the template project se
       (#(str "(" % "\n)"))
       z/of-string
       f
-      print-zipper
+      z/->root-string
       (#(subs % 1 (- (count %) 3)))))
+
+(defn assoc-proj
+  "assoc a key in a project file (or similar) with the supplied value"
+  [root & kvs]
+  (reduce-kv (fn [root key value]
+               (-> root
+                   z/down
+                   (z/find-value z/next key)
+                   z/right
+                   (z/replace value)
+                   z/up
+                   z/up))
+             root
+             (apply hash-map kvs)))
+
+(defn dissoc-proj
+  "dissocs a key in a project file (or similar)"
+  [root & keys]
+  (reduce (fn [root key]
+            (-> root
+                z/down
+                (z/find-value z/next key)
+                z/remove
+                z/next
+                z/remove
+                z/next
+                z/up
+                z/up))
+          root
+          keys))
 
 ;; ===== file processors =====
 
-(defn modify-proj
-  "converts a proj file form sequence into a project map, applies f to it, and then prints it back to a string"
-  [f proj-seq]
-  (let [[info props] (split-at 3 (first proj-seq))]
-    (->> props
-         (apply hash-map)
-         f
-         (mapcat identity)
-         (concat info)
-         (conj '()))))
-
-(defmulti processer (fn [file] (.getName file)))
-
-(defmethod processer :default [file] identity)
-
-(defmethod processer "project.clj" [file]
-  (let [overrides (get-in @project [:template :project])]
-    (->> file
-         (modify-proj #(apply dissoc % [:template]))
-         (modify-proj #(merge % overrides)))))
-
-(defn build-renderer
+(defn build-renderers
   "builds a vector of file renderers"
   [files]
   (let [{:keys [root name] :as project} @project]
@@ -171,47 +174,38 @@ returns true if the file has an override path defined in the template project se
                  (seq ['render (unhide (.getName file)) 'data])))
          files)))
 
-(defn process-renderer
-  "process the template renderer"
+(defn zip-renderer
+  "builds the renderer file from the root zipper"
   [root]
   (-> root
-      (zip-down-up #(-> %
-                        (z/find-value z/next 'main/info)
-                        z/right
-                        (z/replace (get-in @project [:template :msg]))))
-      (zip-down-up #(-> %
-                        z/right
-                        (z/find-value z/next '->files)
-                        z/up
-                        (z/edit (fn [form]
-                                  (concat (butlast form)
-                                          (build-renderers (get-project-files)))))))))
+      z/down
+      (z/find-value z/next 'main/info)
+      z/right
+      (z/replace (get-in @project [:template :msg]))
+      z/up
+      (z/find-value z/next '->files)
+      z/rightmost
+      z/remove
+      z/up
+      (append-children (build-renderers (get-project-files)))))
 
 (defn process-file [file]
-  (let [path (.getAbsolutePath file)
-        [type & name] (-> (.getName file)
-                          (str/split #"\.")
-                          reverse)
-        name (str/join "." (reverse name))
-        templated (-> path
-                      slurp
-                      (replace-template-var (:name @project) "name"))]
-    (m/match [type]
-             [#"clj"] (zip-file-string templated (condp = name
-                                                   "project" identity
-                                                   (get-in @project [:template :title]) process-renderer
-                                                   identity))
-             :else templated)))
+  (let [title (get-in @project [:template :title])
+        path (.getAbsolutePath file)
+        [type & filename] (-> (.getName file)
+                              (str/split #"\.")
+                              reverse)
+        filename (str/join "." (reverse filename))
+        file (slurp path)
+        template #(replace-template-var % (:name @project) "name")]
+    (m/match [filename type]
+             ["project" "clj"] (-> file
+                                   (zip-file-string #(dissoc-proj % :template)))
+             [filename #"clj"] (cond-> (template file)
+                                       (= title filename) (zip-file-string zip-renderer))
+             :else (template file))))
 
-(->> "/lein-template/src/leiningen/new/satori.clj"
-     (str (:root @project))
-     slurp
-     read-zipper
-
-     z/sexpr
-     )
-
-;;(pprint (process-file (nth (get-project-files) 2)))
+;; (pprint (process-file (nth (get-project-files) 2)))
 
 ;; ===== let's make templates! =====
 
@@ -237,31 +231,4 @@ returns true if the file has an override path defined in the template project se
       (spit path (process-file file)))))
 
 (comment (templater)
-
-         (def path (->> "/lein-template/src/leiningen/new/satori.clj"
-                        (str (:root @project))))
-
-         (with-out-str (->> path
-                            read-all
-                            (w/postwalk process-renderer-step)
-                            pprint))
-
-         (def data (z/of-string (->> path
-                                     read-all
-                                     pr-str)))
-
-         (z/sexpr data)
-
-         (pprint data)
-
-         (-> data
-             (z/find 'main/info)
-             z/sexpr)
-
-         (-> data
-             z/down
-             (z/find-value z/right 'defn)
-             z/sexpr)
-
-         (z/find-value data z/next '->files)
          )
