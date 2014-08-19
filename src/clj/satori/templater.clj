@@ -241,23 +241,26 @@ returns true if the file has an override path defined in the template project se
 ;; ===== let's make templates! =====
 
 (defn templater
-  "creates a new line template from the current project and the :template map in project.clj
-  "
+  "creates a new line template from the current project and the :template map in project.clj"
   []
   (let [{:keys [name root template] :as proj} @project
-        {:keys [output-dir title]} template
+        {:keys [output-dir title readme]} template
 
         target-dir (str root "/" output-dir)
         lein-dir (str target-dir "/src/leiningen/new/")
         src-dir (str lein-dir title "/")
 
         path-file (juxt identity
-                        io/file)]
+                        io/file)
+        replace-file (fn [render-path key]
+                       [render-path (io/file (or (get template key) render-path))])]
 
     (fresh-template title target-dir)
 
     (doseq [[path file] (concat [(path-file (str lein-dir title ".clj"))
-                                 (path-file (str target-dir "/project.clj"))]
+                                 (path-file (str target-dir "/project.clj"))
+                                 (replace-file (str target-dir "/README.md") :readme)
+                                 (replace-file (str target-dir "/LICENSE") :license)]
                                 (mapv (juxt (fn [file]
                                               (->> file
                                                    .getName
