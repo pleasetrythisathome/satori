@@ -6,6 +6,7 @@
             [clojure.pprint :refer [pprint]]
             [clojure.walk :as w]
             [rewrite-clj.zip :as z]
+            [fast-zip.core :as fz]
             [rewrite-clj.parser :as p]
             [rewrite-clj.printer :as prn])
   (:use [cfg.current]))
@@ -158,12 +159,15 @@ returns true if the file has an override path defined in the template project se
             (-> root
                 z/down
                 (z/find-value z/next key)
-                z/remove
-                z/next
-                z/remove
-                z/next
-                z/up
-                z/up))
+                (#(if %
+                    (-> %
+                        z/remove
+                        z/next
+                        z/remove
+                        z/next
+                        z/up
+                        z/up)
+                    root))))
           root
           keys))
 
@@ -208,10 +212,26 @@ returns true if the file has an override path defined in the template project se
        z/up
        (#(apply assoc-proj % (flatten (seq project)))))))
 
-#_(-> (str (:root @project) "/lein-template/project.clj")
+(def ^:private ^:const LINE [:newline "\n"])
+
+(defn append-children
+  "appends a sequence of children to a zipper location"
+  [zloc children]
+  (reduce (fn [out item]
+            (fz/append-child out LINE)
+            (z/append-child out item))
+          zloc
+          children))
+
+(-> (str (:root @project) "/lein-template//src/leiningen/new/satori.clj")
     slurp
-    (zip-file-string zip-template-proj)
-    print)
+    (zip-file-string #(-> %
+                          z/down
+                          (z/find-value z/next :require)
+                          z/up
+                          (append-children (take 5 (repeat (into []  (range 10)))))
+                          z/->root-string
+                          print)))
 
 (defn process-file
   "processes the file based on file type, name, and context"

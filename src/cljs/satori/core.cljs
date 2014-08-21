@@ -42,7 +42,8 @@
 
 (defn render
   "Renders the app to the DOM.
-  Can safely be called repeatedly to rerender the app."[]
+  Can safely be called repeatedly to rerender the app."
+  []
   (om/root app-view
            app-state
            {:target app-container}))
