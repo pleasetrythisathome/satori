@@ -23,9 +23,11 @@
                  ;; om
                  [om "0.7.1"]
                  [sablono "0.2.21"]
+                 [crate "0.2.5"]
                  [prismatic/om-tools "0.3.2"]
                  [shodan "0.3.0"]
                  [ankha "0.1.4"]
+                 [figwheel "0.1.4-SNAPSHOT"]
 
                  [rewrite-clj "0.3.9"]]
 

@@ -11,7 +11,7 @@
              ;; React requires either "window" or "global" to be defined.
              (.eval "var global = this;")
              ;; parse the compiled js file
-             (.eval (-> "public/js/simple.js"
+             (.eval (-> "public/js/single.js"
                         io/resource
                         io/reader)))
         ;; eval the core namespace
@@ -35,7 +35,7 @@
         [:title "Satori"]]
        [:body
         [:noscript "If you're seeing this then you're probably a search engine."]
-        (include-js "/js/simple.js")
+        (include-js "/js/single.js")
         ; Render view to HTML string and insert it where React will mount.
         [:div#satori-app (render-to-string state-edn)]
         ; Serialize app state so client can initialize without making an additional request.

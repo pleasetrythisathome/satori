@@ -16,12 +16,14 @@
                              :source-map "resources/public/js/dev.js.map"
                              :pretty-print true
                              :optimizations :none}}
-                 {:id "simple"
+                 {:id "single"
                   :source-paths ["src"]
-                  :compiler {:output-dir "resources/public/out/simple"
-                             :output-to "resources/public/js/simple.js"
-                             :source-map "resources/public/js/simple.js.map"
-                             :optimizations :simple}}
+                  :compiler {:output-dir "resources/public/out/single"
+                             :output-to "resources/public/js/single.js"
+                             :optimizations :whitespace
+                             :pretty-print true
+                             :preamble ["react/react.min.js"]
+                             :externs ["react/externs/react.js"]}}
                  {:id "prod"
                   :source-paths ["src"]
                   :compiler {:output-dir "resources/public/out/prod"
