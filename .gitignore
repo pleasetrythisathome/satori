@@ -9,7 +9,7 @@
 
 /lein-template/
 /resources/public/out/
-/resources/public/*.js*
+/resources/public/js/
 
 .lein-deps-sum
 .lein-repl-history
