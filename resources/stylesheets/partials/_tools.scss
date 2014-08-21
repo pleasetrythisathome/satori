@@ -1,0 +1,487 @@
+.color-white {
+  color: #ffffff;
+}
+.color-blue {
+  color: #4a91f0;
+}
+.color-black {
+  color: #000000;
+}
+.color-red {
+  color: #ff0000;
+}
+.bg-white {
+  background: #ffffff;
+}
+.bg-blue {
+  background: #4a91f0;
+}
+.bg-black {
+  background: #000000;
+}
+.bg-gray {
+  background: #f5f5f5;
+}
+.bg-gray-light {
+  background: #fafafa;
+}
+
+.pull-left {
+  float: left;
+}
+
+.pull-right {
+  float: right;
+}
+
+.hidden {
+  display: none;
+}
+
+.invisible {
+  display: none;
+}
+
+.clearfix {
+  *zoom: 1;
+}
+
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  line-height: 0;
+  content: "";
+}
+
+.clearfix:after {
+  clear: both;
+}
+
+
+.circle {
+  border-radius: 50%;
+}
+
+.medium {
+  width: 30px;
+  height: 30px;
+}
+
+.auto {
+  margin: auto;
+}
+
+.auto-horiz {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.center-horiz {
+  text-align: center;
+}
+
+.center-vert {
+  /* Internet Explorer 10 */
+  display:-ms-flexbox;
+  -ms-flex-pack:center;
+  -ms-flex-align:center;
+
+  /* Firefox */
+  display:-moz-box;
+  -moz-box-pack:center;
+  -moz-box-align:center;
+
+  /* Safari, Opera, and Chrome */
+  display:-webkit-box;
+  -webkit-box-pack:center;
+  -webkit-box-align:center;
+
+  /* W3C */
+  display:box;
+  box-pack:center;
+  box-align:center;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.warning-sign {
+  color: red;
+  opacity: 0.5;
+}
+.thumbs-up {
+  color: green;
+  opacity: 0.5;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.regular {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.thin {
+  font-weight: 200;
+}
+
+.bold {
+  font-weight: 900;
+}
+
+.light {
+  opacity: 0.5;
+}
+.light-more {
+  opacity: 0.3;
+}
+
+.caps {
+  text-transform: uppercase;
+}
+
+.title-case {
+  text-transform: capitalize;
+}
+
+.font-small {
+  font-size: 14px;
+}
+.font-mid {
+  font-size: 20px;
+}
+.font-large {
+  font-size: 28px;
+  line-height: 30px;
+}
+.font-xlarge {
+  font-size: 42px;
+  line-height: 46px;
+}
+.font-xxlarge {
+  font-size: 60px;
+  line-height: 50px;
+}
+.font-xxxlarge {
+  font-size: 85px;
+  line-height: 65px;
+}
+
+.unselectable {
+  -webkit-user-select: none;
+  -moz-user-select: -moz-none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+/* spacing stuff */
+
+.space-before {
+  margin-left: 7px;
+}
+.padding-before {
+  padding-left: 7px;
+}
+.space-before-double {
+  margin-left: 15px;
+}
+.space-after {
+  margin-right: 7px;
+}
+.padding-after {
+  padding-right: 7px;
+}
+
+.relative {
+  position: relative;
+}
+.absolute {
+  position: absolute !important;
+}
+.fixed {
+  position: fixed !important;
+}
+.top {
+  top: 0px;
+}
+.right {
+  right: 0px;
+}
+.bottom {
+  bottom: 0px;
+}
+.left {
+  left: 0px;
+}
+
+.inline {
+  display: inline-block;
+}
+.inline-block {
+  display: inline-block;
+}
+.align-top {
+  vert-align: top;
+}
+.align-bottom {
+  vert-align: bottom;
+}
+
+.full {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+}
+.full-height {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  height: 100%;
+}
+.full-width {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.half {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 50%;
+  height: 50%;
+}
+.half-height {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  height: 50%;
+}
+.half-width {
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 50%;
+}
+
+.scroll {
+  overflow: scroll;
+}
+.scroll-x {
+  overflow-x: scroll;
+}
+.scroll-y {
+  overflow-y: scroll;
+}
+.scroll-hidden {
+  overflow: hidden;
+}
+
+.padding-least {
+  padding: 5px;
+}
+.margin-least {
+  margin: 5px;
+}
+.padding-less {
+  padding: 10px;
+}
+.margin-less {
+  margin: 10px;
+}
+.padding {
+  padding: 15px;
+}
+.margin {
+  margin: 15px;
+}
+.padding-more {
+  padding: 20px;
+}
+.margin-more {
+  margin: 20px;
+}
+.padding-double {
+  padding: 30px;
+}
+.margin-double {
+  margin: 30px;
+}
+.padding-triple {
+  padding: 45px;
+}
+.margin-triple {
+  margin: 45px;
+}
+
+.padding-list:last-child {
+  padding-bottom: 0px;
+}
+.margin-list:last-child {
+  margin-bottom: 0px;
+}
+
+.padding-top {
+  padding-right: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+}
+.padding-no-top {
+  padding-top: 0px;
+}
+.padding-right {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+}
+.padding-no-right {
+  padding-right: 0px;
+}
+.padding-bottom {
+  padding-top: 0px;
+  padding-right: 0px;
+  padding-left: 0px;
+}
+.padding-no-bottom {
+  padding-bottom: 0px;
+}
+.padding-no-left {
+  padding-left: 0px;
+}
+.padding-left {
+  padding-top: 0px;
+  padding-right: 0px;
+  padding-bottom: 0px;
+}
+.padding-horiz,
+.padding-no-vert {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+.padding-vert,
+.padding-no-horiz {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+
+.margin-top {
+  margin-right: 0px;
+  margin-bottom: 0px;
+  margin-left: 0px;
+}
+.margin-no-top {
+  margin-top: 0px;
+}
+.margin-right {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  margin-left: 0px;
+}
+.margin-no-right {
+  margin-right: 0px;
+}
+.margin-bottom {
+  margin-top: 0px;
+  margin-right: 0px;
+  margin-left: 0px;
+}
+.margin-no-bottom {
+  margin-bottom: 0px;
+}
+.margin-no-left {
+  margin-left: 0px;
+}
+.margin-left {
+  margin-top: 0px;
+  margin-right: 0px;
+  margin-bottom: 0px;
+}
+.margin-horiz,
+.margin-no-vert {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.margin-vert,
+.margin-no-horiz {
+  margin-right: 0px;
+  margin-left: 0px;
+}
+/* interaction */
+
+.hover-opacity-reverse,
+.hover-child-opacity-reverse,
+.selected-opacity-reverse,
+.selected-child-opacity-reverse,
+.active-opacity-reverse,
+.active-child-opacity-reverse {
+  opacity: 0.5;
+}
+
+.hover-opacity-reverse:not(.disabled):not(.active):hover,
+.hover-parent-opacity:not(.disabled):not(.active):hover,
+.hover-opacity:not(.disabled):not(.active):hover,
+.hover-parent-opacity:not(.disabled):not(.active):hover {
+  cursor: pointer;
+}
+.hover-opacity-reverse:not(.disabled):not(.active):hover,
+.hover-parent-opacity.active:not(.disabled):hover .hover-child-opacity-reverse,
+.selected-opacity-reverse.selected,
+.selected-parent-opacity.selected .selected-child-opacity-reverse,
+.active-opacity-reverse.active,
+.active-parent-opacity.active .active-child-opacity-reverse  {
+  opacity: 1;
+}
+
+.hover-opacity:not(.active):hover,
+.hover-parent-opacity:not(.active):hover .hover-child-opacity,
+.selected-opacity.selected,
+.selected-parent-opacity.selected .selected-child-opacity,
+.active-opacity.active,
+.active-parent-opacity.active .active-child-opacity  {
+  opacity: 0.5;
+}
+
+
+/* border */
+
+.border {
+  border-style: solid;
+  border-width: 1px;
+}
+.border-top {
+  border-top-style: solid;
+  border-top-width: 1px;
+}
+.border-right,
+.border-right-list {
+  border-right-style: solid;
+  border-right-width: 1px;
+}
+.border-bottom,
+.border-bottom-list {
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+.border-left {
+  border-left-style: solid;
+  border-left-width: 1px;
+}
+.border-right-list:last-child,
+.border-bottom-list:last-child {
+  border: none;
+}
+
+.border,
+.border-top,
+.border-right,
+.border-right-list,
+.border-bottom,
+.border-bottom-list,
+.border-left {
+  border-color: #dbdbdb;
+}
+
+.rounded {
+  border-radius: 4px;
+}

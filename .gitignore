@@ -27,3 +27,5 @@ pom.xml*
 .DS_Store
 .git/
 .#*
+
+.sass-cache
